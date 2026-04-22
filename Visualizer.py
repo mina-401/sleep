@@ -252,13 +252,94 @@ def plot_q2_heatmap(df: pd.DataFrame):
 # 단독 실행
 # ══════════════════════════════════════════════════════════════════════
 
+# ══════════════════════════════════════════════════════════════════════
+# Q1: 스트레스 vs 수면의 질 산점도
+# ══════════════════════════════════════════════════════════════════════
+
+def plot_q1_scatter(df: pd.DataFrame, q1_result: dict):
+    """
+    스트레스(x) vs 수면의 질(y) 산점도
+    - 색: 스트레스 낮음 → 파랑, 높음 → 빨강
+    - 점 크기: 수면의 질 좋을수록 크게
+    - 추세선 + 상관계수 표시
+    """
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+
+    stress  = df["스트레스"].values
+    quality = df["수면의질"].values
+
+    # 색 정규화 (스트레스 기준)
+    norm_stress  = (stress  - stress.min())  / (stress.max()  - stress.min())
+    # 점 크기 정규화 (수면의 질 기준)
+    norm_quality = (quality - quality.min()) / (quality.max() - quality.min())
+    sizes = norm_quality * 120 + 30  # 30 ~ 150 사이
+
+    sc = ax.scatter(
+        stress, quality,
+        c=norm_stress,
+        cmap="RdYlBu_r",        # 파랑(낮음) → 노랑 → 빨강(높음)
+        s=sizes,
+        alpha=0.75,
+        edgecolors="white",
+        linewidths=0.5,
+    )
+
+    # 추세선
+    z = np.polyfit(stress, quality, 1)
+    p = np.poly1d(z)
+    x_line = np.linspace(stress.min(), stress.max(), 100)
+    ax.plot(x_line, p(x_line),
+            color="#444", linewidth=2, linestyle="--",
+            alpha=0.7, label="추세선")
+
+    # 상관계수 텍스트 박스
+    corr = q1_result["stress_sleep_corr"]
+    interp = q1_result["interpretation"]
+    ax.text(
+        0.03, 0.97,
+        f"r = {corr}\n{interp}",
+        transform=ax.transAxes,
+        fontsize=10, va="top",
+        bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.85)
+    )
+
+    # 컬러바
+    cbar = fig.colorbar(sc, ax=ax, pad=0.02)
+    cbar.set_label("스트레스 수준", fontsize=10)
+    cbar.set_ticks([0, 0.5, 1])
+    cbar.set_ticklabels(["낮음", "중간", "높음"])
+
+    # 점 크기 범례
+    for q_val, label in [(2, "수면 질 낮음"), (6, "수면 질 보통"), (10, "수면 질 높음")]:
+        norm_v = (q_val - quality.min()) / (quality.max() - quality.min())
+        ax.scatter([], [], s=norm_v * 120 + 30,
+                   color="gray", alpha=0.6, label=label)
+    ax.legend(fontsize=9, loc="upper right")
+
+    ax.set_xlabel("스트레스 수준 (1~10)", fontsize=11)
+    ax.set_ylabel("수면의 질 (1~10)", fontsize=11)
+    ax.set_title("스트레스와 수면의 질의 관계", fontsize=13, fontweight="bold", pad=12)
+    ax.set_xlim(stress.min() - 0.5, stress.max() + 0.5)
+    ax.set_ylim(quality.min() - 0.5, quality.max() + 0.5)
+    ax.grid(True, alpha=0.2)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
-    from analyzer import load_data, analyze_q2
+    from analyzer import load_data, analyze_q1, analyze_q2
 
     df = load_data()
     if df.empty:
         print("[오류] 데이터 없음")
     else:
+        q1 = analyze_q1(df)
+        plot_q1_scatter(df, q1)
+
         q2 = analyze_q2(df)
         plot_q2_panels(q2)
         plot_q2_heatmap(df)

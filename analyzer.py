@@ -94,15 +94,22 @@ def analyze_q1(df: pd.DataFrame) -> dict:
         interp = "거의 상관없음"
     result["interpretation"] = interp
 
-    # 2. 직업별 평균 계산
-    by_occ = (
-        df.groupby("직업")[["스트레스", "수면의질"]]
+    # 2. 스트레스 구간별 수면의 질 평균
+    df = df.copy()
+    df["스트레스구간"] = pd.cut(
+        df["스트레스"],
+        bins=[0, 4, 7, 10],
+        labels=["낮음(1~4)", "중간(5~7)", "높음(8~10)"]
+    )
+
+    by_stress_group = (
+        df.groupby("스트레스구간", observed=True)["수면의질"]
         .mean()
         .round(2)
-        .sort_values("스트레스", ascending=False)  # 스트레스 높은 순 정렬
         .reset_index()
+        .rename(columns={"수면의질": "수면의질 평균"})
     )
-    result["by_occupation"] = by_occ
+    result["by_stress_group"] = by_stress_group
 
     return result
 
@@ -191,6 +198,56 @@ def analyze_q2(df: pd.DataFrame) -> dict:
     return result
 
 
+# ── 수면장애 그룹 vs 정상 그룹 생활습관 비교 ─────────────────────────
+def analyze_group_diff(df: pd.DataFrame) -> dict:
+    """
+    수면장애 있음 vs 없음 그룹의 생활습관 평균 비교
+
+    반환하는 데이터:
+    - comparison   : 두 그룹 평균 비교 DataFrame
+    - diff_ratio   : 각 항목별 차이 비율 (몇 % 차이나는지)
+    - key_insight  : 가장 차이가 큰 항목 문자열
+    """
+
+    df = df.copy()
+    df["수면장애여부"] = df["수면장애"].apply(
+        lambda x: "있음" if x != "None" else "없음"
+    )
+
+    # 비교할 항목
+    cols = ["스트레스", "운동량", "수면시간", "수면의질", "심박수", "걸음수"]
+
+    # 그룹별 평균
+    group_mean = (
+        df.groupby("수면장애여부")[cols]
+        .mean()
+        .round(2)
+        .T  # 행/열 전치 → 항목이 행, 그룹이 열
+        .reset_index()
+        .rename(columns={"index": "항목", "없음": "정상그룹", "있음": "수면장애그룹"})
+    )
+
+    # 차이 비율 계산 (수면장애그룹이 정상그룹보다 몇 % 높고 낮은지)
+    group_mean["차이(%)"] = (
+        (group_mean["수면장애그룹"] - group_mean["정상그룹"])
+        / group_mean["정상그룹"] * 100
+    ).round(1)
+
+    result = {}
+    result["comparison"] = group_mean
+
+    # 차이가 가장 큰 항목 찾기
+    max_diff_row = group_mean.loc[group_mean["차이(%)"].abs().idxmax()]
+    항목 = max_diff_row["항목"]
+    차이 = max_diff_row["차이(%)"]
+    방향 = "높음" if 차이 > 0 else "낮음"
+    result["key_insight"] = (
+        f"수면장애 그룹은 정상 그룹보다 '{항목}'이 {abs(차이)}% {방향}"
+    )
+
+    return result
+
+
 # ── 단독 실행 시 확인용 ───────────────────────────────────────────────
 if __name__ == "__main__":
     df = load_data()
@@ -209,8 +266,8 @@ if __name__ == "__main__":
         q1 = analyze_q1(df)
         print(f"전체 상관계수 : {q1['stress_sleep_corr']}")
         print(f"해석          : {q1['interpretation']}")
-        print(f"\n직업별 스트레스 · 수면의질 평균:")
-        print(q1["by_occupation"].to_string(index=False))
+        print("\n스트레스 구간별 수면의 질 평균:")
+        print(q1["by_stress_group"].to_string(index=False))
 
         print("\n── Q2 분석 결과 ──")
         q2 = analyze_q2(df)
@@ -229,3 +286,9 @@ if __name__ == "__main__":
 
         print("\n수면장애 안전 조합 TOP3:")
         print(q2["top_safe"].to_string(index=False))
+
+        print("\n── 그룹 비교 분석 결과 ──")
+        gd = analyze_group_diff(df)
+        print("\n수면장애 있음 vs 없음 생활습관 평균 비교:")
+        print(gd["comparison"].to_string(index=False))
+        print(f"\n핵심 인사이트: {gd['key_insight']}")
