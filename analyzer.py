@@ -192,7 +192,7 @@ def analyze_q2(df: pd.DataFrame) -> dict:
         .sort_values("수면장애비율(%)", ascending=False)
     )
 
-    result["top_risk"] = combo.head(3).reset_index(drop=True)   # 위험 TOP3
+    result["top_risk"] = combo.head(5).reset_index(drop=True)   # 위험 TOP5
     result["top_safe"] = combo.tail(3).reset_index(drop=True)   # 안전 TOP3
 
     return result
