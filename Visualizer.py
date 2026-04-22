@@ -340,6 +340,93 @@ def plot_q1_scatter(df: pd.DataFrame, q1_result: dict):
     plt.show()
 
 
+# ══════════════════════════════════════════════════════════════════════
+# Q1-B: 스트레스 구간별 수면의 질 평균 막대 + 전체 평균선
+# ══════════════════════════════════════════════════════════════════════
+
+def plot_q1_stress_bar(df: pd.DataFrame, q1_result: dict):
+    """
+    스트레스 구간(낮음/중간/높음)별 수면의 질 평균 막대그래프
+    + 전체 평균선으로 기준 대비 비교
+    - 색: 스트레스 낮음 → 파랑, 높음 → 빨강
+    - 전체 평균선: 점선으로 표시
+    """
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    by_group = q1_result["by_stress_group"]
+    labels   = list(by_group["스트레스구간"].astype(str))
+    vals     = list(by_group["수면의질 평균"])
+
+    # 전체 평균
+    overall_mean = round(df["수면의질"].mean(), 2)
+
+    # 색: 낮음→파랑, 중간→노랑, 높음→빨강
+    bar_colors = [
+        plt.get_cmap("RdYlBu_r")(0.1),   # 낮음 → 파랑
+        plt.get_cmap("RdYlBu_r")(0.5),   # 중간 → 노랑
+        plt.get_cmap("RdYlBu_r")(0.9),   # 높음 → 빨강
+    ]
+
+    bars = ax.bar(labels, vals, color=bar_colors,
+                  edgecolor="white", linewidth=0.8, width=0.5)
+
+    # 막대 위 값 라벨
+    for bar, val in zip(bars, vals):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.08,
+            f"{val}",
+            ha="center", va="bottom",
+            fontsize=12, fontweight="bold", color="#333"
+        )
+
+    # 전체 평균선
+    ax.axhline(
+        y=overall_mean,
+        color="#333", linewidth=1.8,
+        linestyle="--", alpha=0.75,
+        label=f"전체 평균  {overall_mean}"
+    )
+
+    # 평균선 라벨 (오른쪽 끝에 표시)
+    ax.text(
+        2.38, overall_mean + 0.08,
+        f"전체 평균\n{overall_mean}",
+        ha="right", va="bottom",
+        fontsize=9, color="#333",
+        bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8)
+    )
+
+    # 각 구간이 평균보다 얼마나 차이나는지 화살표로 표시
+    for i, (bar, val) in enumerate(zip(bars, vals)):
+        diff = round(val - overall_mean, 2)
+        color = "#1a6fb5" if diff > 0 else "#c0392b"
+        sign  = "+" if diff > 0 else ""
+        ax.annotate(
+            f"{sign}{diff}",
+            xy=(bar.get_x() + bar.get_width() / 2, overall_mean),
+            xytext=(bar.get_x() + bar.get_width() / 2,
+                    overall_mean + (diff / 2)),
+            ha="center", va="center",
+            fontsize=10, color=color, fontweight="bold",
+        )
+
+    ax.set_xlabel("스트레스 구간", fontsize=11)
+    ax.set_ylabel("수면의 질 평균 (1~10)", fontsize=11)
+    ax.set_title(
+        "스트레스 구간별 수면의 질 평균\n(전체 평균 대비 비교)",
+        fontsize=13, fontweight="bold", pad=12
+    )
+    ax.set_ylim(0, 10.5)
+    ax.grid(axis="y", alpha=0.2, linestyle="--")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
     from analyzer import load_data, analyze_q1, analyze_q2
 
@@ -349,6 +436,7 @@ if __name__ == "__main__":
     else:
         q1 = analyze_q1(df)
         plot_q1_scatter(df, q1)
+        plot_q1_stress_bar(df, q1)
 
         q2 = analyze_q2(df)
         plot_q2_panels(q2)
