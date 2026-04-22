@@ -266,14 +266,22 @@ def plot_q1_scatter(df: pd.DataFrame, q1_result: dict):
 
     fig, ax = plt.subplots(figsize=(9, 6))
 
-    stress  = df["스트레스"].values
-    quality = df["수면의질"].values
+    stress  = df["스트레스"].values.astype(float)
+    quality = df["수면의질"].values.astype(float)
+
+    # NaN 제거
+    mask = ~np.isnan(stress) & ~np.isnan(quality)
+    stress  = stress[mask]
+    quality = quality[mask]
 
     # 색 정규화 (스트레스 기준)
-    norm_stress  = (stress  - stress.min())  / (stress.max()  - stress.min())
-    # 점 크기 정규화 (수면의 질 기준)
-    norm_quality = (quality - quality.min()) / (quality.max() - quality.min())
-    sizes = norm_quality * 120 + 30  # 30 ~ 150 사이
+    s_min, s_max = stress.min(), stress.max()
+    norm_stress = (stress - s_min) / (s_max - s_min + 1e-9)
+
+    # 점 크기 정규화 (수면의 질 기준) - 음수 방지
+    q_min, q_max = quality.min(), quality.max()
+    norm_quality = (quality - q_min) / (q_max - q_min + 1e-9)
+    sizes = np.clip(norm_quality * 120 + 30, 10, 200)  # 최소 10 보장
 
     sc = ax.scatter(
         stress, quality,
@@ -313,10 +321,10 @@ def plot_q1_scatter(df: pd.DataFrame, q1_result: dict):
     cbar.set_ticklabels(["낮음", "중간", "높음"])
 
     # 점 크기 범례
-    for q_val, label in [(2, "수면 질 낮음"), (6, "수면 질 보통"), (10, "수면 질 높음")]:
-        norm_v = (q_val - quality.min()) / (quality.max() - quality.min())
-        ax.scatter([], [], s=norm_v * 120 + 30,
-                   color="gray", alpha=0.6, label=label)
+    for q_val, label in [(q_min, "수면 질 낮음"), ((q_min+q_max)/2, "수면 질 보통"), (q_max, "수면 질 높음")]:
+        norm_v = (q_val - q_min) / (q_max - q_min + 1e-9)
+        s = np.clip(norm_v * 120 + 30, 10, 200)
+        ax.scatter([], [], s=s, color="gray", alpha=0.6, label=label)
     ax.legend(fontsize=9, loc="upper right")
 
     ax.set_xlabel("스트레스 수준 (1~10)", fontsize=11)
