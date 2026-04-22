@@ -144,7 +144,7 @@ def plot_q2_panels(q2_result: dict):
     a_labels = list(a_data["운동량구간"].astype(str))
     a_vals   = list(a_data["수면장애비율(%)"])
 
-    # 운동량은 반대 방향 (많을수록 안전 → 파랑이 많음 쪽에 와야 함)
+    # 운동량은 반대 방향 (많을수록 위험 낮음)
     a_colors = _bar_colors(a_vals)
 
     bars3 = ax3.bar(a_labels, a_vals, color=a_colors, edgecolor="white",
@@ -447,18 +447,18 @@ def plot_q2_top_risk(q2_result: dict):
     risk_vals   = list(top_risk["수면장애비율(%)"])
 
     # 색: 비율 높을수록 진한 빨강
-    norm = np.linspace(0.95, 0.7, len(risk_vals))
+    norm = np.linspace(0.95, 0.55, len(risk_vals))
     colors_risk = [plt.get_cmap(CMAP)(v) for v in norm]
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 10))
     fig.suptitle(
-        "수면장애와 가장 연관 높은 생활습관 조합 TOP5",
+        "수면장애와 가장 연관 높은 생활습관 조합 TOP15",
         fontsize=14, fontweight="bold", y=1.02
     )
 
     bars = ax.barh(risk_labels[::-1], risk_vals[::-1],
                    color=colors_risk[::-1],
-                   edgecolor="white", linewidth=0.8, height=0.5)
+                   edgecolor="white", linewidth=0.8, height=0.6)
 
     # 막대 끝에 수치 라벨
     for bar, val in zip(bars, risk_vals[::-1]):

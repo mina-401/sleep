@@ -122,14 +122,13 @@ def analyze_q2(df: pd.DataFrame) -> dict:
     분석 방법:
     - BMI / 스트레스 / 운동량 3가지 기준으로 각 사람을 등급화
     - 등급 조합별로 수면장애 비율 계산
-    - 가장 위험한 조합 / 가장 안전한 조합 도출
+    - 가장 위험한 조합 도출
 
     반환하는 데이터:
     - disorder_by_bmi      : BMI별 수면장애 비율
     - disorder_by_stress   : 스트레스 구간별 수면장애 비율
     - disorder_by_activity : 운동량 구간별 수면장애 비율
-    - top_risk             : 수면장애 비율 가장 높은 조합 TOP3
-    - top_safe             : 수면장애 비율 가장 낮은 조합 TOP3
+    - top_risk             : 수면장애 비율 가장 높은 조합 TOP15
     """
 
     result = {}
@@ -192,8 +191,7 @@ def analyze_q2(df: pd.DataFrame) -> dict:
         .sort_values("수면장애비율(%)", ascending=False)
     )
 
-    result["top_risk"] = combo.head(5).reset_index(drop=True)   # 위험 TOP5
-    result["top_safe"] = combo.tail(3).reset_index(drop=True)   # 안전 TOP3
+    result["top_risk"] = combo.head(15).reset_index(drop=True)  # 위험 TOP15
 
     return result
 
@@ -281,11 +279,8 @@ if __name__ == "__main__":
         print("\n운동량 구간별 수면장애 비율:")
         print(q2["disorder_by_activity"].to_string(index=False))
 
-        print("\n수면장애 위험 조합 TOP3:")
+        print("\n수면장애 위험 조합 TOP15:")
         print(q2["top_risk"].to_string(index=False))
-
-        print("\n수면장애 안전 조합 TOP3:")
-        print(q2["top_safe"].to_string(index=False))
 
         print("\n── 그룹 비교 분석 결과 ──")
         gd = analyze_group_diff(df)
