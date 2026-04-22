@@ -427,6 +427,88 @@ def plot_q1_stress_bar(df: pd.DataFrame, q1_result: dict):
     plt.show()
 
 
+# ══════════════════════════════════════════════════════════════════════
+# Q2-C: 위험 조합 TOP3 수평 막대그래프
+# ══════════════════════════════════════════════════════════════════════
+
+def plot_q2_top_risk(q2_result: dict):
+    """
+    수면장애 위험 조합 TOP3 수평 막대그래프
+    BMI + 스트레스 + 운동량 3가지 조합을 한눈에 비교
+    """
+
+    top_risk = q2_result["top_risk"]
+    top_safe = q2_result["top_safe"]
+
+    # 조합 라벨 생성 (BMI + 스트레스구간 + 운동량구간)
+    def make_label(row):
+        return f"{row['BMI']} · {row['스트레스구간']} · {row['운동량구간']}"
+
+    risk_labels = [make_label(row) for _, row in top_risk.iterrows()]
+    risk_vals   = list(top_risk["수면장애비율(%)"])
+    safe_labels = [make_label(row) for _, row in top_safe.iterrows()]
+    safe_vals   = list(top_safe["수면장애비율(%)"])
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    fig.suptitle(
+        "수면장애와 가장 연관 높은 생활습관 조합",
+        fontsize=14, fontweight="bold", y=1.02
+    )
+
+    # ── 위험 TOP3 ─────────────────────────────────────────────────────
+    ax1 = axes[0]
+    colors_risk = [plt.get_cmap(CMAP)(0.95),
+                   plt.get_cmap(CMAP)(0.85),
+                   plt.get_cmap(CMAP)(0.75)]
+
+    bars1 = ax1.barh(risk_labels[::-1], risk_vals[::-1],
+                     color=colors_risk[::-1],
+                     edgecolor="white", linewidth=0.8, height=0.5)
+
+    for bar, val in zip(bars1, risk_vals[::-1]):
+        ax1.text(
+            bar.get_width() + 1, bar.get_y() + bar.get_height() / 2,
+            f"{val}%",
+            va="center", fontsize=11, fontweight="bold", color="#c0392b"
+        )
+
+    ax1.set_xlim(0, 115)
+    ax1.set_xlabel("수면장애 비율 (%)", fontsize=10)
+    ax1.set_title("위험 조합 TOP3", fontsize=12, fontweight="bold",
+                  color="#c0392b", pad=10)
+    ax1.grid(axis="x", alpha=0.2, linestyle="--")
+    ax1.spines["top"].set_visible(False)
+    ax1.spines["right"].set_visible(False)
+
+    # ── 안전 TOP3 ─────────────────────────────────────────────────────
+    ax2 = axes[1]
+    colors_safe = [plt.get_cmap(CMAP)(0.05),
+                   plt.get_cmap(CMAP)(0.15),
+                   plt.get_cmap(CMAP)(0.25)]
+
+    bars2 = ax2.barh(safe_labels[::-1], safe_vals[::-1],
+                     color=colors_safe[::-1],
+                     edgecolor="white", linewidth=0.8, height=0.5)
+
+    for bar, val in zip(bars2, safe_vals[::-1]):
+        ax2.text(
+            bar.get_width() + 1, bar.get_y() + bar.get_height() / 2,
+            f"{val}%",
+            va="center", fontsize=11, fontweight="bold", color="#1a6fb5"
+        )
+
+    ax2.set_xlim(0, 115)
+    ax2.set_xlabel("수면장애 비율 (%)", fontsize=10)
+    ax2.set_title("안전 조합 TOP3", fontsize=12, fontweight="bold",
+                  color="#1a6fb5", pad=10)
+    ax2.grid(axis="x", alpha=0.2, linestyle="--")
+    ax2.spines["top"].set_visible(False)
+    ax2.spines["right"].set_visible(False)
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
     from analyzer import load_data, analyze_q1, analyze_q2
 
@@ -441,3 +523,4 @@ if __name__ == "__main__":
         q2 = analyze_q2(df)
         plot_q2_panels(q2)
         plot_q2_heatmap(df)
+        plot_q2_top_risk(q2)
