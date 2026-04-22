@@ -286,12 +286,14 @@ def plot_q1_scatter(df: pd.DataFrame, q1_result: dict):
     )
 
     # 추세선
-    z = np.polyfit(stress, quality, 1)
-    p = np.poly1d(z)
-    x_line = np.linspace(stress.min(), stress.max(), 100)
-    ax.plot(x_line, p(x_line),
-            color="#444", linewidth=2, linestyle="--",
-            alpha=0.7, label="추세선")
+    mask = ~np.isnan(stress) & ~np.isnan(quality)
+    if mask.sum() >= 2:
+        z = np.polyfit(stress[mask], quality[mask], 1)
+        p = np.poly1d(z)
+        x_line = np.linspace(stress[mask].min(), stress[mask].max(), 100)
+        ax.plot(x_line, p(x_line),
+                color="#444", linewidth=2, linestyle="--",
+                alpha=0.7, label="추세선")
 
     # 상관계수 텍스트 박스
     corr = q1_result["stress_sleep_corr"]
