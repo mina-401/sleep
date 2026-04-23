@@ -482,17 +482,3 @@ def plot_q2_top_risk(q2_result: dict):
 
     plt.tight_layout()
     _save(fig, "q2_top_risk.png")
-    from analyzer import load_data, analyze_q1, analyze_q2
-
-    df = load_data()
-    if df.empty:
-        print("[오류] 데이터 없음")
-    else:
-        q1 = analyze_q1(df)
-        plot_q1_scatter(df, q1)
-        plot_q1_stress_bar(df, q1)
-
-        q2 = analyze_q2(df)
-        plot_q2_panels(q2)
-        plot_q2_heatmap(df)
-        plot_q2_top_risk(q2)
