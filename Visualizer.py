@@ -12,18 +12,29 @@ import numpy as np
 import pandas as pd
 import platform
 import subprocess
+import os
 
-# ── 한글 폰트 설정 (코랩/주피터 공통) ────────────────────────────────
+# ── 한글 폰트 설정 ────────────────────────────────────────────────────
 if platform.system() == "Linux":
-    # 코랩 환경 → 나눔고딕 설치
     subprocess.run(["apt-get", "install", "-y", "-q", "fonts-nanum"], capture_output=True)
     fm._load_fontmanager(try_read_cache=False)
     plt.rcParams["font.family"] = "NanumGothic"
 else:
-    # 로컬 Windows
     plt.rcParams["font.family"] = "Malgun Gothic"
 
 plt.rcParams["axes.unicode_minus"] = False
+
+# ── 결과 저장 폴더 ────────────────────────────────────────────────────
+OUTPUT_DIR = "output"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+
+def _save(fig, filename: str):
+    """차트를 output/ 폴더에 저장하고 닫기"""
+    path = os.path.join(OUTPUT_DIR, filename)
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    print(f"[저장] {path}")
 
 # ── 공통 색상 규칙 ────────────────────────────────────────────────────
 # 수면장애 비율 낮음 → 파랑, 높음 → 빨강 (전체 통일)
@@ -163,11 +174,7 @@ def plot_q2_panels(q2_result: dict):
     )
 
     plt.tight_layout()
-    plt.show()
-
-
-# ══════════════════════════════════════════════════════════════════════
-# Q2-B: 히트맵 (스트레스 x 운동량)
+    _save(fig, "q2_panels.png")
 # ══════════════════════════════════════════════════════════════════════
 
 def plot_q2_heatmap(df: pd.DataFrame):
@@ -245,11 +252,7 @@ def plot_q2_heatmap(df: pd.DataFrame):
     )
 
     plt.tight_layout()
-    plt.show()
-
-
-# ══════════════════════════════════════════════════════════════════════
-# 단독 실행
+    _save(fig, "q2_heatmap.png")
 # ══════════════════════════════════════════════════════════════════════
 
 # ══════════════════════════════════════════════════════════════════════
@@ -337,11 +340,7 @@ def plot_q1_scatter(df: pd.DataFrame, q1_result: dict):
     ax.spines["right"].set_visible(False)
 
     plt.tight_layout()
-    plt.show()
-
-
-# ══════════════════════════════════════════════════════════════════════
-# Q1-B: 스트레스 구간별 수면의 질 평균 막대 + 전체 평균선
+    _save(fig, "q1_scatter.png")
 # ══════════════════════════════════════════════════════════════════════
 
 def plot_q1_stress_bar(df: pd.DataFrame, q1_result: dict):
@@ -424,11 +423,7 @@ def plot_q1_stress_bar(df: pd.DataFrame, q1_result: dict):
     ax.spines["right"].set_visible(False)
 
     plt.tight_layout()
-    plt.show()
-
-
-# ══════════════════════════════════════════════════════════════════════
-# Q2-C: 위험 조합 TOP3 수평 막대그래프
+    _save(fig, "q1_stress_bar.png")
 # ══════════════════════════════════════════════════════════════════════
 
 def plot_q2_top_risk(q2_result: dict):
@@ -486,10 +481,7 @@ def plot_q2_top_risk(q2_result: dict):
     )
 
     plt.tight_layout()
-    plt.show()
-
-
-if __name__ == "__main__":
+    _save(fig, "q2_top_risk.png")
     from analyzer import load_data, analyze_q1, analyze_q2
 
     df = load_data()
