@@ -243,13 +243,7 @@ def plot_q2_heatmap(df: pd.DataFrame):
     cbar.set_label("수면장애 비율 (%)", fontsize=10)
     cbar.set_ticks([0, 25, 50, 75, 100])
 
-    # 결론 박스
-    ax.text(
-        0.5, -0.22,
-        "스트레스 높고 운동량 적을수록 수면장애 위험이 증가",
-        transform=ax.transAxes, ha="center", fontsize=10,
-        bbox=dict(boxstyle="round,pad=0.5", facecolor="#fff3e0", alpha=0.95)
-    )
+
 
     plt.tight_layout()
     _save(fig, "q2_heatmap.png")
@@ -472,13 +466,7 @@ def plot_q2_top_risk(q2_result: dict):
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
-    # 결론 박스
-    ax.text(
-        0.5, -0.15,
-        "비만(Obese) + 스트레스 높음 + 운동 부족 조합에서 수면장애 위험 집중",
-        transform=ax.transAxes, ha="center", fontsize=10,
-        bbox=dict(boxstyle="round,pad=0.5", facecolor="#fff3e0", alpha=0.95)
-    )
+
 
     plt.tight_layout()
     _save(fig, "q2_top_risk.png")
