@@ -31,7 +31,7 @@ sleep/
 
 ## 📊 데이터셋
 
-- **출처**: [Kaggle - Sleep Health and Lifestyle Dataset](https://www.kaggle.com/datasets/ayeshaimiran1619/sleep-and-lifestyle-study)
+- **출처**: [https://www.kaggle.com/datasets/ayeshaimran1619/sleep-and-lifestyle-study?resource=download]
 - **크기**: 374행 × 13열
 - **주요 컬럼**
 
